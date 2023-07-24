@@ -1,0 +1,64 @@
+<!-- <html>
+<body>
+    <p>
+        This is scene 1
+    </p>
+    <button onclick="document.location='scene-2.html'">Next</button>
+</body>
+</html> -->
+
+
+<html>
+<script src='https://d3js.org/d3.v5.min.js'></script>
+<style> circle {fill: lightblue; stroke: black;} </style>
+<body onload='init()'>
+    <p> This is scene 1 </p>
+<svg width=300 height=300>
+</svg>
+<script>
+async function init() {
+//set the dimensions and margins of the graph
+var margin = 50;
+  width = 200;
+  height = 200;
+//Read the data
+var data = await d3.csv("/data/covid.csv");
+//var data = await d3.csv("https://bsnehangshu.github.io/covid.csv");
+var x = d3.scaleLog()
+  .domain([10, 150])
+  .range([ 0, width ])
+  .base(10);
+var y = d3.scaleLog()
+  .domain([10, 150])
+  .range([ height, 0])
+  .base(10);
+// Add plots
+d3.select("svg").append("g")
+  .attr("transform", "translate(" + margin + "," + margin + ")")
+  .selectAll("circle")
+  .data(data)
+  .enter().append("circle")
+    .attr("cx", function (d) { return x(d.gdp_per_capita); } )
+    .attr("cy", function (d) { return y(d.new_cases_smoothed_per_million); } )
+    .attr("r", function (d,i) { return d.population; } );
+// Add Y axis
+d3.select("svg").append("g")
+  .attr("transform", "translate(" + margin + "," + margin + ")")
+  .call(d3.axisLeft(y).tickValues([10, 20, 50, 100]).tickFormat(d3.format("~s")));
+  // Add X axis
+d3.select("svg").append("g")
+.attr("transform", "translate(" + margin + "," + (height+margin) + ")")
+.call(d3.axisBottom(x).tickValues([10, 20, 50, 100]).tickFormat(d3.format("~s")));
+}
+</script>
+<!-- <script>
+    d3.csv("/data/cars2017.csv", function(data) {
+        for (var i = 0; i < data.length; i++) {
+            console.log(data[i].Name);
+            console.log(data[i].Age);
+        }
+    });
+</script> -->
+
+</body>
+</html>
