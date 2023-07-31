@@ -1,0 +1,316 @@
+<html>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
+  <style>
+    button {
+    background-color: gray; 
+    border: 2px solid darkgrey; 
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+  }
+  div.tooltip {
+    position: absolute;
+    text-align: left;
+    padding: .5rem;
+    background: gray;
+    color: whitesmoke;
+    border: 1px solid #313639;
+    border-radius: 8px;
+    pointer-events: none;
+    font-size: 14px; 
+  }
+    </style>
+    <body>
+      <div id="storyline">
+        <h2 style="color:gray;" > Scene 2: How did vaccinations control the death toll worldwide? Was it really effective? 
+        </h2>
+        <p>
+          We have plotted 2 line charts below with deaths and vaccinations data over time to to show how they are related.
+        </p>
+        <p>
+          As shown in these charts below, most of the countries started vaccinations drive to have their population immuned to this virus by the end of 2020. 
+          This helped to bring down the death toll over the time.
+          </p>
+        <p>
+          For example, in Italy there were two waves around March to April, and November to December in 2020. 
+          But immediately after administration statrted vaccinations drive, the number of deaths reduced significantly.
+        </p>
+        <p>
+          This page has interactive charts where deaths and vaccinations are plotted over time since the inception of this pandemic. 
+          Select any contry using the dropdown menu and try hovering over the line charts to see daily deaths asd vaccinations.
+        </p>
+      </div>
+      </div>
+      <div id="filter">
+        <label style="color:black" > <b>Choose any country</b></label>
+        <select id="ChooseLocation"></select>
+        <!-- <label > Year:</label>
+        <select id="ChooseYear"></select> -->
+        <!-- <label > Month:</label>
+        <select id="ChooseMonth"></select> -->
+      </div> 
+      <div id="svg">
+        <svg width=800 height=600></svg>
+      </div>
+      <div id="button">
+        <button onclick="document.location='index.html'">Scene 1</button>
+        <button onclick="document.location='page2.html'">Scene 2</button>
+        <button onclick="document.location='page3.html'">Scene 3</button>
+      </div>
+      <div id="chart-container"></div>
+      <div id="tooltip"></div> 
+<script>
+  // add a div for tooltip 
+  var div = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+{
+
+  var data = [];
+  var data1 = [];
+  var data2 = [];
+
+     d3.csv("dataset-2.csv", function(d) {
+        data.push({
+          date: d.reported_date,
+          location: d.location,
+          deaths: +d.new_deaths,
+          vaccine: +d.new_vaccinations_smoothed_per_million,
+          year: d.year,
+          month: +d.month,
+       }); 
+     }).then(function(d) {
+
+        saveData = data;// make a copy of csv file
+        //saveData2 = data;
+        var firstTime = "True";
+        var sds = "01/31/23";
+        // 01/31/23
+        var parseTime = d3.timeParse("%m/%d/%y");
+        var parsedate = d3.timeFormat("%Y-%m-%d");
+
+        locationFilter = "Italy";
+        yearFilter = "2023";
+        dateFilter = "2023-07-31";
+        //dateFilter = "2023-07-01"; 
+
+        var locations = ["Italy","Afghanistan","Albania","Algeria","Andorra","Anguilla","Antigua and Barbuda","Argentina","Aruba","Australia","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belgium","Belize","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands","Central African Republic","Chile","China","Colombia","Congo","Cote d'Ivoire","Croatia","Cuba","Curacao","Cyprus","Czechia","Democratic Republic of Congo","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Estonia","Eswatini","Ethiopia","Europe","European Union","Faeroe Islands","Fiji","Finland","France","French Polynesia","Gabon","Gambia","Georgia","Germany","Ghana","Gibraltar","Greece","Greenland","Grenada","Guatemala","Guernsey","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Isle of Man","Israel","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kosovo","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Malta","Mauritania","Mauritius","Mexico","Moldova","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","New Zealand","Nigeria","North Macedonia","Norway","Oceania","Oman","Pakistan","Palestine","Panama","Paraguay","Peru","Philippines","Poland","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","San Marino","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovenia","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Switzerland","Syria","Tajikistan","Thailand","Timor","Trinidad and Tobago","Tunisia","Turkey","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vietnam","Zambia","Zimbabwe"];
+        //"World","Asia","Africa","North America","South America",
+        var years = ["2023","2022","2021","2020"];
+        
+        // List of groups -- need to add full list of countries
+        //var locationArray = ["Afghanistan","Albania","Algeria","Andorra","Anguilla","Antigua and Barbuda","Argentina","Aruba","Australia","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belgium","Belize","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands","Central African Republic","Chile","China","Colombia","Congo","Cote d'Ivoire","Croatia","Cuba","Curacao","Cyprus","Czechia","Democratic Republic of Congo","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Estonia","Eswatini","Ethiopia","Faeroe Islands","Fiji","Finland","France","French Polynesia","Gabon","Gambia","Georgia","Germany","Ghana","Gibraltar","Greece","Greenland","Grenada","Guatemala","Guernsey","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Isle of Man","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kosovo","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Malta","Mauritania","Mauritius","Mexico","Moldova","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","New Zealand","Nigeria","North Macedonia","Norway","Oceania","Oman","Pakistan","Palestine","Panama","Paraguay","Peru","Philippines","Poland","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","San Marino","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovenia","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Switzerland","Syria","Tajikistan","Thailand","Timor","Trinidad and Tobago","Tunisia","Turkey","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vietnam","Zambia","Zimbabwe"];
+        
+        data1,data2 = filter(data,locationFilter,yearFilter,dateFilter);
+        plot(data1,data2);
+        
+        // add the options to the filter
+        d3.select("#ChooseLocation")
+          .selectAll('myOptions')
+            .data(locations)
+            .enter()
+                .append('option')
+                .text(function (d) { return d; }) // text showed in the menu
+                .attr("value", function (d) { return d; }); // corresponding value returned by the button                
+        
+        d3.select("#ChooseYear")
+          .selectAll('myOptions')
+            .data(years)
+            .enter()
+                .append('option')
+                .text(function (d) { return d; }) // text showed in the menu
+                .attr("value", function (d) { return d; }); // corresponding value returned by the button      
+
+        // recover the option "on change"  
+        d3.select("#ChooseLocation").on("change", function(d) {            
+            locationFilter = d3.select(this).property("value");
+            data1,data2 = filter(saveData, locationFilter,yearFilter,dateFilter);
+            plot(data1,data2);
+        });
+        
+        d3.select("#ChooseYear").on("change", function(d) {
+            yearFilter = d3.select(this).property("value");
+            data1,data2 = filter(saveData, locationFilter,yearFilter,dateFilter);
+            plot(data1,data2);
+        });
+
+        function filter(data, locationFilter,yearFilter,dateFilter) {
+          
+          data = data.filter(function(d){ return d.location == locationFilter });
+          var array_death = d3.nest()
+                            .key(function(k)  { return k.date; })
+                            .rollup(function(k) { return d3.sum(k, function(g) {return g.deaths; })})
+                            .entries(data);
+          data1 = array_death;
+          data1.forEach(function(d) {
+                d.date = parseTime(d.key);
+                d.deaths = d.value;
+            });
+
+            var array_vaccine = d3.nest()
+                            .key(function(k)  { return k.date; })
+                            .rollup(function(k) { return d3.sum(k, function(g) {return g.vaccine; })})
+                            .entries(data);
+            data2 = array_vaccine;
+            data2.forEach(function(d) {
+                d.date = parseTime(d.key);
+                d.vaccine = d.value;
+            });
+          return data1,data2;
+          }
+
+        function plot(data1,data2) {
+          d3.select('svg').selectAll("*").remove();
+
+          var dateArray=[new Date(2020,0,1),new Date(2020,1,1),new Date(2020,2,1),new Date(2020,3,1),new Date(2020,4,1),new Date(2020,5,1),new Date(2020,6,1),new Date(2020,7,1),new Date(2020,8,1),new Date(2020,9,1),new Date(2020,10,1),new Date(2020,11,1),new Date(2021,0,1),new Date(2021,1,1),new Date(2021,2,1),new Date(2021,3,1),new Date(2021,4,1),new Date(2021,5,1),new Date(2021,6,1),new Date(2021,7,1),new Date(2021,8,1),new Date(2021,9,1),new Date(2021,10,1),new Date(2021,11,1),new Date(2022,0,1),new Date(2022,1,1),new Date(2022,2,1),new Date(2022,3,1),new Date(2022,4,1),new Date(2022,5,1),new Date(2022,6,1),new Date(2022,7,1),new Date(2022,8,1),new Date(2022,9,1),new Date(2022,10,1),new Date(2022,11,1),new Date(2023,0,1),new Date(2023,1,1),new Date(2023,2,1),new Date(2023,3,1),new Date(2023,4,1),new Date(2023,5,1),new Date(2023,6,1)]
+          var xScale = d3.scaleBand().domain(dateArray).range([0,700]); 
+
+          ///// plot death line chart
+          var x1 = d3.scaleBand().domain(data1.map(function(d) { return d.date; })).range([0,700]);
+          var y1 = d3.scaleLinear().domain([0, d3.max(data1, function(d) { return d.deaths; })]).range([200,0]);
+          //var y1_sccale = d3.scaleLinear().domain([0,125000]).range([250,0]);
+          d3.select('svg')
+            .append("g").attr("transform","translate(50,50)")
+            .selectAll("circle")
+            .data(data1)
+            .enter()
+            .append("circle")
+              .attr("cx", function (d,i) { return x1(d.date); } )
+              .attr("cy", function (d,i) { return y1(d.deaths); } )
+              .attr("r", 5 )
+              .style("opacity","0")
+            .on('mouseover', function (d, i) {
+                d3.select(this).transition()
+                .duration('50')
+                .attr('opacity', '.85');
+                div.transition()
+                .duration(50)
+                .style("opacity", 1);
+                div.html("Date: " + parsedate(d.date) + "<br> Deaths: " + d.deaths)
+                .style("left", (d3.event.pageX + 10) + "px")
+                .style("top", (d3.event.pageY - 15) + "px")
+            })
+            .on('mouseout', function (d, i) {
+                d3.select(this).transition()
+                .duration('50')
+                .attr('opacity', '1');
+                div.transition()
+                .duration('50')
+                .style("opacity", 0);
+            });
+          
+          var valueline1 = d3.line()
+            .x(function(d) { return x1(d.date); })
+            .y(function(d) { return y1(d.deaths); });
+
+          d3.select('svg')
+            .append("g")
+            .attr("transform","translate(50,50)")
+                .append("path")
+                    .attr("class", "line")
+                    .attr("d", valueline1(data1))
+                    .style("fill", "none")
+                    .style("stroke", "red")
+                    .style("stroke-width", "2")
+                    .style("opacity","0.4");
+
+          d3.select('svg')
+            .append("g")
+            .attr("transform","translate(50,50)")
+            .call(d3.axisLeft(y1).tickFormat(d3.format("~s")))
+
+          d3.select('svg')
+            .append("g")
+            .attr("transform","translate(50,250)")
+            .call(d3.axisBottom(xScale).tickFormat(d3.timeFormat("%Y-%b")))
+            .selectAll("text")	
+                    .style("text-anchor", "end")
+                    .attr("dx", "-.8em")
+                    .attr("dy", ".15em")
+                    .attr("transform", "rotate(-45)")
+          d3.select('svg')
+            .append("text")
+            .attr("transform", "translate(400,315)")
+            .style("text-anchor", "middle")
+            .text("Daily deaths reported over time");
+
+
+                    
+          /// plot vaccine line chart
+          var x2 = d3.scaleBand().domain(data2.map(function(d) { return d.date; })).range([0,700]);
+          var y2 = d3.scaleLinear().domain([0, d3.max(data2, function(d) { return d.vaccine; })]).range([200,0]);
+
+          d3.select('svg')
+            .append("g").attr("transform","translate(50,325)")
+            .selectAll("circle")
+            .data(data2)
+            .enter()
+            .append("circle")
+              .attr("cx", function (d,i) { return x2(d.date); } )
+              .attr("cy", function (d,i) { return y2(d.vaccine); } )
+              .attr("r", 5 )
+              .style("opacity","0")
+            .on('mouseover', function (d, i) {
+                d3.select(this).transition()
+                .duration('50')
+                .attr('opacity', '.85');
+                div.transition()
+                .duration(50)
+                .style("opacity", 1);
+                div.html("Date: " + parsedate(d.date) + "<br> Vaccinations: " + d.vaccine)
+                .style("left", (d3.event.pageX + 10) + "px")
+                .style("top", (d3.event.pageY - 15) + "px")
+            })
+            .on('mouseout', function (d, i) {
+                d3.select(this).transition()
+                .duration('50')
+                .attr('opacity', '1');
+                div.transition()
+                .duration('50')
+                .style("opacity", 0);
+            });
+
+          var valueline2 = d3.line()
+            .x(function(d) { return x2(d.date); })
+            .y(function(d) { return y2(d.vaccine); });
+          
+          d3.select('svg')
+            .append("g")
+            .attr("transform","translate(50,325)")
+                .append("path")
+                    .attr("class", "line")
+                    .attr("d", valueline2(data2))
+                    .style("fill", "none")
+                    .style("stroke", "green")
+                    .style("stroke-width", "2")
+                    .style("opacity","0.4");
+          
+          d3.select('svg')
+            .append("g")
+            .attr("transform","translate(50,325)")
+            .call(d3.axisLeft(y2).tickFormat(d3.format("~s")))
+
+          d3.select('svg')
+            .append("g")
+            .attr("transform","translate(50,525)")
+            .call(d3.axisBottom(xScale).tickFormat(d3.timeFormat("%Y-%b")))
+            .selectAll("text")	
+                    .style("text-anchor", "end")
+                    .attr("dx", "-.8em")
+                    .attr("dy", ".15em")
+                    .attr("transform", "rotate(-45)")
+          d3.select('svg')
+            .append("text")
+            .attr("transform", "translate(400,590)")
+            .style("text-anchor", "middle")
+            .text("Daily vaccinations administered over time");
+        }
+  });
+}
+</script>
+</body>
+</html>
